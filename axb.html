@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>线性方程组求解器 | Ax = b</title>
+    <div class="container">
+        <h2>使用说明</h2>
+        <div class="operation-box" style="flex-direction: column; align-items: flex-start;">
+            <p><strong>1. 生成方程组</strong>：点击"生成新的方程组"按钮，系统会随机生成一个3×4的线性方程组。</p>
+            <p><strong>2. 矩阵表示</strong>：系统会显示系数矩阵A和常数向量b，以及它们的增广矩阵[A|b]。</p>
+            <p><strong>3. 行变换操作</strong>：使用以下操作将矩阵化为简化行阶梯形(RREF)：</p>
+            <ul>
+                <li><strong>交换两行</strong>：选择两行进行交换</li>
+                <li><strong>倍乘某一行</strong>：将某一行乘以一个数（必须是整数或分数）</li>
+                <li><strong>行加减</strong>：将某一行乘以一个数（必须是整数或分数）后加到另一行</li>
+            </ul>
+            <p><strong>4. 求解</strong>：当矩阵化为RREF形式后，系统会自动显示方程组的解，包括特解和基础解系。</p>
+            <p><strong>5. 重新开始</strong>：任何时候可以点击"生成新的方程组"按钮重新开始。</p>
+        </div>
+    </div>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        
+        h1, h2, h3 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+        }
+        
+        h1 {
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        table {
+            border-collapse: collapse;
+            margin: 15px auto;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        table, th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: center;
+        }
+        
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        input[type="number"] {
+            width: 50px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        input[type="text"] {
+            width: 60px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        select {
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .operation-box {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .operation-box label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .operation-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        .operation-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        #status {
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .matrix-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .matrix-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .solution-container {
+            margin-top: 20px;
+        }
+        
+        .solution-vector {
+            display: inline-block;
+            margin: 0 10px;
+            vertical-align: middle;
+        }
+        
+        .vector {
+            display: inline-block;
+            border: 1px solid #ddd;
+            padding: 5px 10px;
+            border-radius: 4px;
+            background-color: white;
+            margin: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .operation-box {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .matrix-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .operation-controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>线性方程组求解器 Ax = b</h1>
+    
+    <div class="container">
+        <button onclick="generateMatrix()">生成新的方程组</button>
+        
+        <h2>矩阵表示</h2>
+        <div class="matrix-container">
+            <div>
+                <div class="matrix-title">系数矩阵 A</div>
+                <div id="matrixA"></div>
+            </div>
+            <div>
+                <div class="matrix-title">常数向量 b</div>
+                <div id="vectorB"></div>
+            </div>
+        </div>
+        
+        <h2>增广矩阵 [A|b]</h2>
+        <div id="augmentedMatrix"></div>
+        
+        <div id="status" class="warning">请先生成矩阵开始计算</div>
+        
+        <div id="solution" class="solution-container"></div>
+    </div>
+    
+    <div class="container">
+        <h2>矩阵行变换操作</h2>
+        
+        <div class="operation-box">
+            <label for="operationType">选择行变换类型:</label>
+            <select id="operationType" onchange="updateOperationControls()">
+                <option value="swap">交换两行</option>
+                <option value="multiply">倍乘某一行</option>
+                <option value="add">行加减</option>
+            </select>
+            
+            <div class="operation-controls" id="swapControls">
+                <div class="operation-group">
+                    <span>交换行</span>
+                    <input type="number" id="swapRow1" min="1" max="3" placeholder="行1">
+                    <span>与</span>
+                    <input type="number" id="swapRow2" min="1" max="3" placeholder="行2">
+                </div>
+                <button onclick="swapRows()">执行交换</button>
+            </div>
+            
+            <div class="operation-controls" id="multiplyControls" style="display:none;">
+                <div class="operation-group">
+                    <span>倍乘行</span>
+                    <input type="number" id="multiplyRowNum" min="1" max="3" placeholder="行号">
+                    <span>乘以</span>
+                    <input type="text" id="multiplyFactor" placeholder="倍数" value="1">
+                </div>
+                <button onclick="multiplyRow()">执行倍乘</button>
+            </div>
+            
+            <div class="operation-controls" id="addControls" style="display:none;">
+                <div class="operation-group">
+                    <span>行加减</span>
+                    <input type="number" id="addRowTarget" min="1" max="3" placeholder="目标行">
+                    <span> += </span>
+                    <input type="number" id="addRowSource" min="1" max="3" placeholder="源行">
+                    <span> × </span>
+                    <input type="text" id="addFactor" placeholder="倍数" value="1">
+                </div>
+                <button onclick="addRows()">执行加减</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let A = [];
+        let b = [];
+        const n = 3; // 矩阵的大小
+
+        // 随机生成矩阵 A 和向量 b，确保秩小于3且增广矩阵秩与原矩阵相同
+        function generateMatrix() {
+            A = [];
+            b = [];
+            
+            // 随机生成前两行，确保线性无关
+            A[0] = [];
+            A[1] = [];
+            for (let j = 0; j < n; j++) {
+                A[0][j] = { numerator: Math.floor(Math.random() * 11) - 5, denominator: 1 };
+                A[1][j] = { numerator: Math.floor(Math.random() * 11) - 5, denominator: 1 };
+            }
+            
+            // 确保前两行不是线性相关的
+            // 如果前两行恰好线性相关（不太可能），重新生成第二行
+            let isDependent = true;
+            while (isDependent) {
+                let ratio = null;
+                let allSameRatio = true;
+                for (let j = 0; j < n; j++) {
+                    if (A[0][j].numerator === 0 && A[1][j].numerator === 0) continue;
+                    if (A[0][j].numerator === 0 || A[1][j].numerator === 0) {
+                        allSameRatio = false;
+                        break;
+                    }
+                    const currentRatio = multiplyFractions(A[1][j], { numerator: A[0][j].denominator, denominator: A[0][j].numerator });
+                    if (ratio === null) {
+                        ratio = currentRatio;
+                    } else if (ratio.numerator !== currentRatio.numerator || ratio.denominator !== currentRatio.denominator) {
+                        allSameRatio = false;
+                        break;
+                    }
+                }
+                isDependent = allSameRatio && ratio !== null;
+                if (isDependent) {
+                    // 重新生成第二行
+                    for (let j = 0; j < n; j++) {
+                        A[1][j] = { numerator: Math.floor(Math.random() * 11) - 5, denominator: 1 };
+                    }
+                } else {
+                    break;
+                }
+            }
+            
+            // 第三行是前两行的线性组合
+            const coeff1 = { 
+                numerator: Math.floor(Math.random() * 5) - 2, // -2到2的整数
+                denominator: 1 
+            };
+            const coeff2 = { 
+                numerator: Math.floor(Math.random() * 5) - 2, // -2到2的整数
+                denominator: 1 
+            };
+
+            // 确保至少有一个系数不为0
+            while (coeff1.numerator === 0 && coeff2.numerator === 0) {
+                coeff1.numerator = Math.floor(Math.random() * 5) - 2;
+                coeff2.numerator = Math.floor(Math.random() * 5) - 2;
+            }
+
+            A[2] = [];
+            for (let j = 0; j < n; j++) {
+                A[2][j] = addFractions(
+                    multiplyFractions(A[0][j], coeff1),
+                    multiplyFractions(A[1][j], coeff2)
+                );
+            }
+            
+            // 生成b向量，使得增广矩阵的秩与原矩阵相同
+            // b是A的列的线性组合
+            const bCoeff1 = { numerator: Math.floor(Math.random() * 5) + 1, denominator: 1 };
+            const bCoeff2 = { numerator: Math.floor(Math.random() * 5) + 1, denominator: 1 };
+            
+            for (let i = 0; i < n; i++) {
+                b[i] = addFractions(
+                    multiplyFractions(A[i][0], bCoeff1),
+                    multiplyFractions(A[i][1], bCoeff2)
+                );
+            }
+            
+            displayMatrixA();
+            displayVectorB();
+            displayAugmentedMatrix();
+            checkRREF();
+            
+            document.getElementById("status").className = "success";
+            document.getElementById("status").textContent = "已生成新的方程组，请使用行变换操作求解。";
+        }
+
+        // 显示矩阵 A 和向量 b
+        function displayMatrixA() {
+            const table = document.createElement("table");
+            const header = document.createElement("tr");
+            for (let j = 0; j < n; j++) {
+                const th = document.createElement("th");
+                th.textContent = `x${j+1}`;
+                header.appendChild(th);
+            }
+            table.appendChild(header);
+            
+            for (let i = 0; i < n; i++) {
+                const row = document.createElement("tr");
+                for (let j = 0; j < n; j++) {
+                    const cell = document.createElement("td");
+                    cell.textContent = toFraction(A[i][j]);
+                    row.appendChild(cell);
+                }
+                table.appendChild(row);
+            }
+            document.getElementById("matrixA").innerHTML = "";
+            document.getElementById("matrixA").appendChild(table);
+        }
+
+        function displayVectorB() {
+            const table = document.createElement("table");
+            const header = document.createElement("tr");
+            const th = document.createElement("th");
+            th.textContent = "值";
+            header.appendChild(th);
+            table.appendChild(header);
+            
+            for (let i = 0; i < n; i++) {
+                const row = document.createElement("tr");
+                const cell = document.createElement("td");
+                cell.textContent = toFraction(b[i]);
+                row.appendChild(cell);
+                table.appendChild(row);
+            }
+            document.getElementById("vectorB").innerHTML = "";
+            document.getElementById("vectorB").appendChild(table);
+        }
+
+        // 显示增广矩阵
+        function displayAugmentedMatrix() {
+            const table = document.createElement("table");
+            const header = document.createElement("tr");
+            for (let j = 0; j < n; j++) {
+                const th = document.createElement("th");
+                th.textContent = `x${j+1}`;
+                header.appendChild(th);
+            }
+            const th = document.createElement("th");
+            th.textContent = "b";
+            header.appendChild(th);
+            table.appendChild(header);
+            
+            for (let i = 0; i < n; i++) {
+                const row = document.createElement("tr");
+                for (let j = 0; j < n; j++) {
+                    const cell = document.createElement("td");
+                    cell.textContent = toFraction(A[i][j]);
+                    row.appendChild(cell);
+                }
+                const cell = document.createElement("td");
+                cell.textContent = toFraction(b[i]);
+                row.appendChild(cell);
+                table.appendChild(row);
+            }
+            document.getElementById("augmentedMatrix").innerHTML = "";
+            document.getElementById("augmentedMatrix").appendChild(table);
+        }
+
+        // 将数字转换为分数形式
+        function toFraction(fraction) {
+            if (fraction.denominator === 1) return fraction.numerator.toString();
+            return `${fraction.numerator}/${fraction.denominator}`;
+        }
+
+        // 计算最大公约数
+        function gcd(a, b) {
+            return b ? gcd(b, a % b) : a;
+        }
+
+        // 简化分数
+        function simplifyFraction(numerator, denominator) {
+            const commonDivisor = gcd(Math.abs(numerator), Math.abs(denominator));
+            const sign = (numerator * denominator < 0) ? -1 : 1;
+            return {
+                numerator: sign * Math.abs(numerator) / commonDivisor,
+                denominator: Math.abs(denominator) / commonDivisor
+            };
+        }
+
+        // 交换行
+        function swapRows() {
+            const row1 = parseInt(document.getElementById("swapRow1").value, 10) - 1;
+            const row2 = parseInt(document.getElementById("swapRow2").value, 10) - 1;
+            if (row1 >= 0 && row1 < n && row2 >= 0 && row2 < n) {
+                [A[row1], A[row2]] = [A[row2], A[row1]];
+                [b[row1], b[row2]] = [b[row2], b[row1]];
+                displayAugmentedMatrix();
+                checkRREF();
+            } else {
+                alert("请输入有效的行号(1-3)！");
+            }
+        }
+
+        // 倍乘行
+        function multiplyRow() {
+            const row = parseInt(document.getElementById("multiplyRowNum").value, 10) - 1;
+            const factor = parseFraction(document.getElementById("multiplyFactor").value);
+            if (row >= 0 && row < n) {
+                for (let j = 0; j < n; j++) {
+                    A[row][j] = multiplyFractions(A[row][j], factor);
+                }
+                b[row] = multiplyFractions(b[row], factor);
+                displayAugmentedMatrix();
+                checkRREF();
+            } else {
+                alert("请输入有效的行号(1-3)！");
+            }
+        }
+
+        // 加减行
+        function addRows() {
+            const targetRow = parseInt(document.getElementById("addRowTarget").value, 10) - 1;
+            const sourceRow = parseInt(document.getElementById("addRowSource").value, 10) - 1;
+            const factor = parseFraction(document.getElementById("addFactor").value);
+            if (targetRow >= 0 && targetRow < n && sourceRow >= 0 && sourceRow < n) {
+                for (let j = 0; j < n; j++) {
+                    A[targetRow][j] = addFractions(A[targetRow][j], multiplyFractions(A[sourceRow][j], factor));
+                }
+                b[targetRow] = addFractions(b[targetRow], multiplyFractions(b[sourceRow], factor));
+                displayAugmentedMatrix();
+                checkRREF();
+            } else {
+                alert("请输入有效的行号(1-3)！");
+            }
+        }
+
+        // 解析分数输入
+        function parseFraction(input) {
+            const parts = input.split('/');
+            if (parts.length === 2) {
+                const numerator = parseFloat(parts[0]);
+                const denominator = parseFloat(parts[1]);
+                if (denominator === 0) {
+                    alert("分母不能为0！");
+                    return { numerator: 0, denominator: 1 };
+                }
+                return simplifyFraction(numerator, denominator);
+            } else {
+                return { numerator: parseFloat(input), denominator: 1 };
+            }
+        }
+
+        // 分数乘法
+        function multiplyFractions(f1, f2) {
+            const numerator = f1.numerator * f2.numerator;
+            const denominator = f1.denominator * f2.denominator;
+            return simplifyFraction(numerator, denominator);
+        }
+
+        // 分数加法
+        function addFractions(f1, f2) {
+            const numerator = f1.numerator * f2.denominator + f2.numerator * f1.denominator;
+            const denominator = f1.denominator * f2.denominator;
+            return simplifyFraction(numerator, denominator);
+        }
+
+        // 检查是否为RREF
+        function checkRREF() {
+            const augmentedMatrix = [];
+            for (let i = 0; i < n; i++) {
+                augmentedMatrix[i] = [...A[i], b[i]];
+            }
+
+            let lastPivotColumn = -1;
+            for (let i = 0; i < n; i++) {
+                let pivotFound = false;
+                for (let j = 0; j <= n; j++) {
+                    if (augmentedMatrix[i][j].numerator !== 0) {
+                        if (augmentedMatrix[i][j].numerator !== augmentedMatrix[i][j].denominator || j <= lastPivotColumn) {
+                            document.getElementById("status").className = "warning";
+                            document.getElementById("status").textContent = "当前矩阵不是简化行阶梯形(RREF)，请继续变换。";
+                            document.getElementById("solution").innerHTML = "";
+                            return;
+                        }
+                        pivotFound = true;
+                        lastPivotColumn = j;
+                        break;
+                    }
+                }
+                if (!pivotFound) {
+                    continue;
+                }
+                for (let k = 0; k < n; k++) {
+                    if (k !== i && augmentedMatrix[k][lastPivotColumn].numerator !== 0) {
+                        document.getElementById("status").className = "warning";
+                        document.getElementById("status").textContent = "当前矩阵不是简化行阶梯形(RREF)，请继续变换。";
+                        document.getElementById("solution").innerHTML = "";
+                        return;
+                    }
+                }
+            }
+            document.getElementById("status").className = "success";
+            document.getElementById("status").textContent = "当前矩阵已是简化行阶梯形(RREF)，可以求解。";
+            findParticularAndNullSpace();
+        }
+
+        // 找到特解和基础解系
+        function findParticularAndNullSpace() {
+            const augmentedMatrix = [];
+            for (let i = 0; i < n; i++) {
+                augmentedMatrix[i] = [...A[i], b[i]];
+            }
+
+            const particularSolution = Array(n).fill({ numerator: 0, denominator: 1 });
+            const freeVariables = [];
+            const pivotColumns = [];
+
+            // 找到主元列和自由变量
+            for (let i = 0; i < n; i++) {
+                let pivotFound = false;
+                for (let j = 0; j < n; j++) {
+                    if (augmentedMatrix[i][j].numerator !== 0) {
+                        pivotColumns.push(j);
+                        pivotFound = true;
+                        break;
+                    }
+                }
+                if (!pivotFound) {
+                    freeVariables.push(i);
+                }
+            }
+
+            // 提取特解
+            for (let i = 0; i < n; i++) {
+                if (pivotColumns.includes(i)) {
+                    const pivotRow = pivotColumns.indexOf(i);
+                    particularSolution[i] = augmentedMatrix[pivotRow][n];
+                }
+            }
+
+            // 提取基础解系
+            const nullSpace = [];
+            for (let fv of freeVariables) {
+                const vector = Array(n).fill({ numerator: 0, denominator: 1 });
+                vector[fv] = { numerator: 1, denominator: 1 };
+                for (let i = 0; i < n; i++) {
+                    if (pivotColumns.includes(i)) {
+                        const pivotRow = pivotColumns.indexOf(i);
+                        vector[i] = multiplyFractions(
+                            { numerator: -augmentedMatrix[pivotRow][fv].numerator, denominator: augmentedMatrix[pivotRow][fv].denominator },
+                            { numerator: augmentedMatrix[pivotRow][i].denominator, denominator: augmentedMatrix[pivotRow][i].numerator }
+                        );
+                    }
+                }
+                nullSpace.push(vector);
+            }
+
+            // 显示特解和基础解系
+            const solutionDiv = document.getElementById("solution");
+            solutionDiv.innerHTML = "<h3>方程组的解</h3>";
+            
+            // 特解
+            solutionDiv.innerHTML += "<p><strong>特解 xₚ:</strong></p>";
+            const particularDiv = document.createElement("div");
+            particularDiv.className = "vector";
+            particularDiv.innerHTML = "[" + particularSolution.map(f => toFraction(f)).join(", ") + "]ᵀ";
+            solutionDiv.appendChild(particularDiv);
+            
+            // 基础解系
+            if (nullSpace.length > 0) {
+                solutionDiv.innerHTML += "<p><strong>基础解系 (齐次方程的解):</strong></p>";
+                for (let i = 0; i < nullSpace.length; i++) {
+                    const vectorDiv = document.createElement("div");
+                    vectorDiv.className = "vector";
+                    vectorDiv.innerHTML = "[" + nullSpace[i].map(f => toFraction(f)).join(", ") + "]ᵀ";
+                    solutionDiv.appendChild(vectorDiv);
+                }
+            } else {
+                solutionDiv.innerHTML += "<p>方程组有唯一解</p>";
+            }
+        }
+
+        // 根据选择的变换类型更新显示的控制元素
+        function updateOperationControls() {
+            const operationType = document.getElementById("operationType").value;
+            document.getElementById("swapControls").style.display = "none";
+            document.getElementById("multiplyControls").style.display = "none";
+            document.getElementById("addControls").style.display = "none";
+            
+            if (operationType === "swap") {
+                document.getElementById("swapControls").style.display = "flex";
+            } else if (operationType === "multiply") {
+                document.getElementById("multiplyControls").style.display = "flex";
+            } else if (operationType === "add") {
+                document.getElementById("addControls").style.display = "flex";
+            }
+        }
+        
+        // 初始化时调用一次
+        updateOperationControls();
+    </script>
+</body>
+</html>
