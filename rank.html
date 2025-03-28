@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>求解矩阵的秩</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        h1 {
+            color: #333333;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #matrixDisplay, #reducedMatrixDisplay, #statusDisplay, #rankDisplay {
+            margin-top: 20px;
+            color: #333333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #cccccc;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+            vertical-align: middle;
+            background-color: #f9f9f9;
+        }
+
+        th {
+            background-color: #e0e0e0;
+        }
+
+        .status {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 20px;
+            display: none;
+            font-size: 14px; /* 调整提示信息的字号 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>求解矩阵的秩</h1>
+        <button id="generateMatrix">随机生成一个3×4的矩阵</button>
+        <div id="matrixDisplay"></div>
+        <div id="statusDisplay" class="status">已生成新的矩阵，请计算矩阵的秩</div>
+        <button id="calculateRank">计算矩阵的秩</button>
+        <div id="reducedMatrixDisplay"></div>
+        <div id="rankDisplay"></div>
+    </div>
+    <script>
+        document.getElementById('generateMatrix').addEventListener('click', generateRandomMatrix);
+        document.getElementById('calculateRank').addEventListener('click', calculateRank);
+
+        let matrix;
+
+        function generateRandomMatrix() {
+            matrix = [];
+            for (let i = 0; i < 3; i++) {
+                let row = [];
+                for (let j = 0; j < 4; j++) {
+                    row.push(Math.floor(Math.random() * 10)); // 随机生成0到9的整数
+                }
+                matrix.push(row);
+            }
+            displayMatrix(matrix, 'matrixDisplay');
+            document.getElementById('statusDisplay').style.display = 'block';
+        }
+
+        function displayMatrix(matrix, elementId) {
+            let display = '<table>';
+            for (let i = 0; i < matrix.length; i++) {
+                display += '<tr>';
+                for (let j = 0; j < matrix[i].length; j++) {
+                    display += `<td>${matrix[i][j]}</td>`;
+                }
+                display += '</tr>';
+            }
+            display += '</table>';
+            document.getElementById(elementId).innerHTML = display;
+        }
+
+        function calculateRank() {
+            if (!matrix) {
+                alert('请先随机生成一个3×4的矩阵！');
+                return;
+            }
+
+            let reducedMatrix = matrix.map(row => [...row]); // 复制矩阵
+
+            for (let i = 0; i < reducedMatrix.length; i++) {
+                let maxRow = i;
+                for (let k = i + 1; k < reducedMatrix.length; k++) {
+                    if (Math.abs(reducedMatrix[k][i]) > Math.abs(reducedMatrix[maxRow][i])) {
+                        maxRow = k;
+                    }
+                }
+                if (maxRow !== i) {
+                    [reducedMatrix[i], reducedMatrix[maxRow]] = [reducedMatrix[maxRow], reducedMatrix[i]];
+                }
+
+                if (reducedMatrix[i][i] === 0) {
+                    continue;
+                }
+
+                for (let j = i + 1; j < reducedMatrix.length; j++) {
+                    let factor = reducedMatrix[j][i] / reducedMatrix[i][i];
+                    for (let k = 0; k < reducedMatrix[j].length; k++) {
+                        reducedMatrix[j][k] -= factor * reducedMatrix[i][k];
+                    }
+                }
+            }
+
+            let rank = 0;
+            for (let i = 0; i < reducedMatrix.length; i++) {
+                if (reducedMatrix[i].some(x => x !== 0)) {
+                    rank++;
+                }
+            }
+
+            document.getElementById('rankDisplay').innerText = `矩阵的秩是 ${rank}`;
+            displayMatrix(reducedMatrix, 'reducedMatrixDisplay');
+            document.getElementById('statusDisplay').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

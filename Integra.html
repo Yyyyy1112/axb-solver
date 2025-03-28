@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>二次函数定积分练习系统</title>
+    <style>
+        /* 新增步骤样式 */
+        .step-container { margin: 20px auto; max-width: 600px; }
+        .step { display: none; margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .active-step { display: block; }
+        .step-prompt { font-weight: bold; margin-bottom: 10px; }
+        .step-feedback { margin-top: 8px; font-size: 14px; }
+        .correct { color: #28a745; }
+        .wrong { color: #dc3545; }
+        #progress { text-align: center; margin: 20px; }
+        .input-group { margin-bottom: 10px; }
+        .input-group label { display: inline-block; width: 100px; }
+        .input-group input { width: 100px; margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>分步定积分练习系统</h1>
+        <div id="question" class="question"></div>
+        
+        <!-- 步骤容器 -->
+        <div class="step-container">
+            <div id="progress"></div>
+            
+            <div id="step1" class="step">
+                <div class="step-prompt">步骤1：求原函数 ∫f(x)dx</div>
+                <div class="input-group">
+                    <label for="term1-coeff">x³项系数:</label>
+                    <input type="text" id="term1-coeff" class="step-input" placeholder="例：1/3">
+                </div>
+                <div class="input-group">
+                    <label for="term2-coeff">x²项系数:</label>
+                    <input type="text" id="term2-coeff" class="step-input" placeholder="例：1">
+                </div>
+                <div class="input-group">
+                    <label for="term3-coeff">x项系数:</label>
+                    <input type="text" id="term3-coeff" class="step-input" placeholder="例：3">
+                </div>
+                <div class="step-feedback"></div>
+            </div>
+
+            <div id="step2" class="step">
+                <div class="step-prompt">步骤2：代入上限值计算 F(b)</div>
+                <input type="text" class="step-input" placeholder="例： 12.5 或 25/2">
+                <div class="step-feedback"></div>
+            </div>
+
+            <div id="step3" class="step">
+                <div class="step-prompt">步骤3：代入下限值计算 F(a)</div>
+                <input type="text" class="step-input" placeholder="例： 2.333 或 7/3">
+                <div class="step-feedback"></div>
+            </div>
+
+            <div id="step4" class="step">
+                <div class="step-prompt">步骤4：最终结果 F(b) - F(a)</div>
+                <input type="text" class="step-input" placeholder="输入最终答案">
+                <div class="step-feedback"></div>
+            </div>
+        </div>
+
+        <button onclick="prevStep()">上一步</button>
+        <button onclick="nextStep()">下一步</button>
+        <button onclick="newQuestion()">新题目</button>
+    </div>
+    <script>
+        // 状态管理对象
+        let currentState = {
+            currentStep: 1,
+            totalSteps: 4,
+            problem: null,
+            stepsData: {
+                antiderivative: '',  // 原函数
+                upperValue: null,    // 上限计算结果
+                lowerValue: null     // 下限计算结果
+            }
+        };
+
+        // 步骤验证逻辑
+        const stepValidators = {
+            1: (input, problem) => {
+                const userCoeffs = [
+                    parseMath(document.getElementById('term1-coeff').value),
+                    parseMath(document.getElementById('term2-coeff').value),
+                    parseMath(document.getElementById('term3-coeff').value)
+                ];
+                
+                const expectedCoeffs = problem.antiderivativeCoeffs;
+                
+                return userCoeffs[0] === expectedCoeffs[0] &&
+                       userCoeffs[1] === expectedCoeffs[1] &&
+                       userCoeffs[2] === expectedCoeffs[2];
+            },
+            2: (input, problem) => {
+                const userValue = parseMath(input);
+                return Math.abs(userValue - problem.upperValue) < 0.01;
+            },
+            3: (input, problem) => {
+                const userValue = parseMath(input);
+                return Math.abs(userValue - problem.lowerValue) < 0.01;
+            },
+            4: (input, problem) => {
+                const userValue = parseMath(input);
+                return Math.abs(userValue - problem.answer) < 0.01;
+            }
+        };
+
+        // 数学表达式解析（简化版）
+        function parseMath(input) {
+            // 处理分数
+            if (input.includes('/')) {
+                const [num, den] = input.split('/').map(Number);
+                return num / den;
+            }
+            return parseFloat(input);
+        }
+
+        function updateProgress() {
+            document.getElementById('progress').innerHTML = 
+                `步骤 ${currentState.currentStep}/${currentState.totalSteps}`;
+        }
+
+        function showStep(stepNumber) {
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active-step');
+            });
+            document.getElementById(`step${stepNumber}`).classList.add('active-step');
+            updateProgress();
+        }
+
+        function nextStep() {
+            const currentStep = currentState.currentStep;
+            let input, feedback;
+            
+            if (currentStep === 1) {
+                // 获取步骤1的输入
+                input = [
+                    document.getElementById('term1-coeff').value,
+                    document.getElementById('term2-coeff').value,
+                    document.getElementById('term3-coeff').value
+                ];
+                feedback = document.querySelector(`#step${currentStep} .step-feedback`);
+            } else {
+                input = document.querySelector(`#step${currentStep} .step-input`).value;
+                feedback = document.querySelector(`#step${currentStep} .step-feedback`);
+            }
+            
+            // 执行验证
+            if (stepValidators[currentStep](input, currentState.problem)) {
+                feedback.innerHTML = "✓ 正确";
+                feedback.className = "correct";
+                if (currentStep < currentState.totalSteps) {
+                    currentState.currentStep++;
+                    showStep(currentState.currentStep);
+                }
+            } else {
+                feedback.innerHTML = "✗ 请检查计算过程";
+                feedback.className = "wrong";
+            }
+        }
+
+        function prevStep() {
+            if (currentState.currentStep > 1) {
+                currentState.currentStep--;
+                showStep(currentState.currentStep);
+            }
+        }
+
+        // 题目生成（增强版）
+        function generateProblem() {
+            const a = Math.floor(Math.random() * 3) + 1;
+            const b = Math.floor(Math.random() * 3) + 1;
+            const c = Math.floor(Math.random() * 3) + 1;
+            const lower = Math.floor(Math.random() * 3);
+            const upper = lower + Math.floor(Math.random() * 3) + 1;
+
+            // 计算各步骤值
+            const antiderivativeCoeffs = [a/3, b/2, c];
+            const upperValue = (a/3)*upper**3 + (b/2)*upper**2 + c*upper;
+            const lowerValue = (a/3)*lower**3 + (b/2)*lower**2 + c*lower;
+            
+            return {
+                expression: `∫<sub>${lower}</sub><sup>${upper}</sup> (${a}x² + ${b}x + ${c}) dx`,
+                antiderivativeCoeffs: antiderivativeCoeffs,
+                upperValue: upperValue,
+                lowerValue: lowerValue,
+                answer: upperValue - lowerValue
+            };
+        }
+
+        function newQuestion() {
+            currentState.problem = generateProblem();
+            currentState.currentStep = 1;
+            document.getElementById('question').innerHTML = currentState.problem.expression;
+            document.querySelectorAll('.step-input').forEach(input => input.value = '');
+            document.querySelectorAll('.step-feedback').forEach(fb => fb.innerHTML = '');
+            showStep(1);
+        }
+
+        // 初始化
+        window.onload = newQuestion;
+    </script>
+</body>
+</html>
