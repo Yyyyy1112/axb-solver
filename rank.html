@@ -9,11 +9,10 @@
             font-family: 'Arial', sans-serif;
             background-color: #f0f8ff;
             margin: 0;
-            padding: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
+            min-height: 100vh;
         }
 
         .container {
@@ -21,14 +20,14 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 80%;
-            max-width: 800px;
+            width: 90%;
+            max-width: 900px;
         }
 
         h1 {
             color: #333333;
             margin-bottom: 20px;
+            text-align: center;
         }
 
         button {
@@ -38,7 +37,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin: 10px 0;
+            margin: 10px 5px;
             font-size: 16px;
             transition: background-color 0.3s;
         }
@@ -47,16 +46,35 @@
             background-color: #0056b3;
         }
 
-        #matrixDisplay, #reducedMatrixDisplay, #statusDisplay, #rankDisplay {
+        .matrix-history {
             margin-top: 20px;
-            color: #333333;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .matrix-step {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .matrix-step:last-child {
+            border-bottom: none;
+        }
+
+        .step-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
-            margin-bottom: 20px;
+            margin-top: 5px;
         }
 
         table, th, td {
@@ -64,7 +82,7 @@
         }
 
         th, td {
-            padding: 10px;
+            padding: 8px;
             text-align: center;
             vertical-align: middle;
             background-color: #f9f9f9;
@@ -80,9 +98,71 @@
             border: 1px solid #c3e6cb;
             border-radius: 5px;
             padding: 10px;
-            margin-top: 20px;
+            margin: 10px 0;
             display: none;
-            font-size: 14px; /* 调整提示信息的字号 */
+        }
+
+        .operation-box {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .operation-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .operation-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 50px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        select {
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .rank-input {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .rank-input input {
+            width: 60px;
+            padding: 8px;
+            margin: 0 10px;
+        }
+
+        .current-matrix {
+            background-color: #e6f7ff;
+            border: 1px solid #b3e0ff;
         }
     </style>
 </head>
@@ -90,85 +170,447 @@
     <div class="container">
         <h1>求解矩阵的秩</h1>
         <button id="generateMatrix">随机生成一个3×4的矩阵</button>
-        <div id="matrixDisplay"></div>
-        <div id="statusDisplay" class="status">已生成新的矩阵，请计算矩阵的秩</div>
-        <button id="calculateRank">计算矩阵的秩</button>
-        <div id="reducedMatrixDisplay"></div>
-        <div id="rankDisplay"></div>
+        <div id="statusDisplay" class="status">已生成新的矩阵，请使用行变换操作求解</div>
+        
+        <div class="operation-box">
+            <label for="operationType">选择行变换类型:</label>
+            <select id="operationType">
+                <option value="swap">交换两行</option>
+                <option value="multiply">倍乘某一行</option>
+                <option value="add">行加减</option>
+            </select>
+            
+            <div class="operation-controls" id="swapControls">
+                <div class="operation-group">
+                    <span>交换行</span>
+                    <input type="number" id="swapRow1" min="1" max="3" placeholder="行1">
+                    <span>与</span>
+                    <input type="number" id="swapRow2" min="1" max="3" placeholder="行2">
+                </div>
+                <button onclick="swapRows()">执行交换</button>
+            </div>
+            
+            <div class="operation-controls" id="multiplyControls" style="display:none;">
+                <div class="operation-group">
+                    <span>倍乘行</span>
+                    <input type="number" id="multiplyRowNum" min="1" max="3" placeholder="行号">
+                    <span>乘以</span>
+                    <input type="text" id="multiplyFactor" placeholder="倍数" value="1">
+                </div>
+                <button onclick="multiplyRow()">执行倍乘</button>
+            </div>
+            
+            <div class="operation-controls" id="addControls" style="display:none;">
+                <div class="operation-group">
+                    <span>行加减</span>
+                    <input type="number" id="addRowTarget" min="1" max="3" placeholder="目标行">
+                    <span> += </span>
+                    <input type="number" id="addRowSource" min="1" max="3" placeholder="源行">
+                    <span> × </span>
+                    <input type="text" id="addFactor" placeholder="倍数" value="1">
+                </div>
+                <button onclick="addRows()">执行加减</button>
+            </div>
+        </div>
+        
+        <div class="matrix-history" id="matrixHistory"></div>
+        
+        <div id="rankInput" class="rank-input">
+            <p>当前矩阵已化为行阶梯形(REF)，请输入矩阵的秩:</p>
+            <input type="number" id="userRankInput" min="0" max="3">
+            <button onclick="checkRank()">验证</button>
+            <div id="rankResult"></div>
+        </div>
     </div>
     <script>
         document.getElementById('generateMatrix').addEventListener('click', generateRandomMatrix);
-        document.getElementById('calculateRank').addEventListener('click', calculateRank);
+        document.getElementById('operationType').addEventListener('change', updateOperationControls);
 
-        let matrix;
+        let originalMatrix;
+        let currentMatrix;
+        let currentRank;
+        let iterationCount = 0;
+        let operationHistory = [];
+        let targetRank; // 存储目标秩，但不显示给用户
+
+        // 计算最大公约数
+        function gcd(a, b) {
+            return b ? gcd(b, a % b) : a;
+        }
+
+        // 简化分数
+        function simplifyFraction(numerator, denominator) {
+            const commonDivisor = gcd(Math.abs(numerator), Math.abs(denominator));
+            const sign = (numerator * denominator < 0) ? -1 : 1;
+            return {
+                numerator: sign * Math.abs(numerator) / commonDivisor,
+                denominator: Math.abs(denominator) / commonDivisor
+            };
+        }
+
+        // 将数字转换为分数形式
+        function toFraction(fraction) {
+            if (fraction.denominator === 1) return fraction.numerator.toString();
+            return `${fraction.numerator}/${fraction.denominator}`;
+        }
+
+        // 解析分数输入
+        function parseFraction(input) {
+            const parts = input.split('/');
+            if (parts.length === 2) {
+                const numerator = parseFloat(parts[0]);
+                const denominator = parseFloat(parts[1]);
+                if (denominator === 0) {
+                    alert("分母不能为0！");
+                    return { numerator: 0, denominator: 1 };
+                }
+                return simplifyFraction(numerator, denominator);
+            } else {
+                return { numerator: parseFloat(input), denominator: 1 };
+            }
+        }
+
+        // 分数乘法
+        function multiplyFractions(f1, f2) {
+            const numerator = f1.numerator * f2.numerator;
+            const denominator = f1.denominator * f2.denominator;
+            return simplifyFraction(numerator, denominator);
+        }
+
+        // 分数加法
+        function addFractions(f1, f2) {
+            const numerator = f1.numerator * f2.denominator + f2.numerator * f1.denominator;
+            const denominator = f1.denominator * f2.denominator;
+            return simplifyFraction(numerator, denominator);
+        }
 
         function generateRandomMatrix() {
-            matrix = [];
+            // 随机选择秩 (1, 2 或 3)
+            targetRank = Math.floor(Math.random() * 3) + 1;
+            
+            // 生成具有指定秩的矩阵
+            originalMatrix = [];
+            
+            // 首先生成一个秩为targetRank的阶梯形矩阵
             for (let i = 0; i < 3; i++) {
                 let row = [];
                 for (let j = 0; j < 4; j++) {
-                    row.push(Math.floor(Math.random() * 10)); // 随机生成0到9的整数
+                    if (i < targetRank && j === i) {
+                        // 主对角线上的非零元素（确保秩）
+                        row.push({ numerator: Math.floor(Math.random() * 5) + 1, denominator: 1 });
+                    } else if (i < targetRank && j > i) {
+                        // 主元右侧的随机元素
+                        row.push({ numerator: Math.floor(Math.random() * 5), denominator: 1 });
+                    } else if (i >= targetRank) {
+                        // 秩之外的全零行
+                        row.push({ numerator: 0, denominator: 1 });
+                    } else {
+                        // 其他位置的随机元素
+                        row.push({ numerator: Math.floor(Math.random() * 5), denominator: 1 });
+                    }
                 }
-                matrix.push(row);
+                originalMatrix.push(row);
             }
-            displayMatrix(matrix, 'matrixDisplay');
+            
+            // 对矩阵进行随机行变换，使其不是明显的阶梯形
+            for (let k = 0; k < 5; k++) {
+                const operation = Math.floor(Math.random() * 3);
+                
+                if (operation === 0) {
+                    // 交换两行
+                    const row1 = Math.floor(Math.random() * 3);
+                    const row2 = Math.floor(Math.random() * 3);
+                    [originalMatrix[row1], originalMatrix[row2]] = [originalMatrix[row2], originalMatrix[row1]];
+                } else if (operation === 1) {
+                    // 倍乘某一行
+                    const row = Math.floor(Math.random() * 3);
+                    const factor = { numerator: Math.floor(Math.random() * 3) + 1, denominator: 1 };
+                    for (let j = 0; j < 4; j++) {
+                        originalMatrix[row][j] = multiplyFractions(originalMatrix[row][j], factor);
+                    }
+                } else {
+                    // 行加减
+                    const targetRow = Math.floor(Math.random() * 3);
+                    const sourceRow = Math.floor(Math.random() * 3);
+                    if (targetRow !== sourceRow) {
+                        const factor = { numerator: Math.floor(Math.random() * 3) + 1, denominator: 1 };
+                        for (let j = 0; j < 4; j++) {
+                            const product = multiplyFractions(originalMatrix[sourceRow][j], factor);
+                            originalMatrix[targetRow][j] = addFractions(originalMatrix[targetRow][j], product);
+                        }
+                    }
+                }
+            }
+            
+            // Reset state
+            currentMatrix = originalMatrix.map(row => row.map(cell => ({ ...cell })));
+            iterationCount = 0;
+            operationHistory = [];
+            
+            displayCurrentMatrix();
             document.getElementById('statusDisplay').style.display = 'block';
+            document.getElementById('statusDisplay').className = 'status';
+            document.getElementById('statusDisplay').textContent = '已生成新的矩阵，请使用行变换操作求解';
+            document.getElementById('rankInput').style.display = 'none';
+            document.getElementById('rankResult').innerHTML = '';
         }
 
-        function displayMatrix(matrix, elementId) {
-            let display = '<table>';
-            for (let i = 0; i < matrix.length; i++) {
-                display += '<tr>';
-                for (let j = 0; j < matrix[i].length; j++) {
-                    display += `<td>${matrix[i][j]}</td>`;
-                }
-                display += '</tr>';
+        function displayCurrentMatrix() {
+            const historyDiv = document.getElementById('matrixHistory');
+            
+            // Clear and show all steps
+            historyDiv.innerHTML = '';
+            
+            // Show original matrix
+            const originalStep = document.createElement('div');
+            originalStep.className = 'matrix-step';
+            originalStep.innerHTML = `
+                <div class="step-header">初始矩阵 (迭代 0):</div>
+                ${createMatrixTable(originalMatrix)}
+            `;
+            historyDiv.appendChild(originalStep);
+            
+            // Show all operations
+            operationHistory.forEach((step, index) => {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = 'matrix-step';
+                stepDiv.innerHTML = `
+                    <div class="step-header">迭代 ${index + 1}: ${step.operation}</div>
+                    ${createMatrixTable(step.matrix)}
+                `;
+                historyDiv.appendChild(stepDiv);
+            });
+            
+            // Show current matrix (highlighted)
+            if (iterationCount > 0) {
+                const currentStep = document.createElement('div');
+                currentStep.className = 'matrix-step current-matrix';
+                currentStep.innerHTML = `
+                    <div class="step-header">当前矩阵 (迭代 ${iterationCount}):</div>
+                    ${createMatrixTable(currentMatrix)}
+                `;
+                historyDiv.appendChild(currentStep);
+                
+                // Scroll to bottom
+                historyDiv.scrollTop = historyDiv.scrollHeight;
             }
-            display += '</table>';
-            document.getElementById(elementId).innerHTML = display;
         }
 
-        function calculateRank() {
-            if (!matrix) {
-                alert('请先随机生成一个3×4的矩阵！');
+        function createMatrixTable(matrix) {
+            let table = '<table>';
+            for (let i = 0; i < matrix.length; i++) {
+                table += '<tr>';
+                for (let j = 0; j < matrix[i].length; j++) {
+                    table += `<td>${toFraction(matrix[i][j])}</td>`;
+                }
+                table += '</tr>';
+            }
+            table += '</table>';
+            return table;
+        }
+
+        function updateOperationControls() {
+            const operationType = document.getElementById("operationType").value;
+            document.getElementById("swapControls").style.display = "none";
+            document.getElementById("multiplyControls").style.display = "none";
+            document.getElementById("addControls").style.display = "none";
+            
+            if (operationType === "swap") {
+                document.getElementById("swapControls").style.display = "flex";
+            } else if (operationType === "multiply") {
+                document.getElementById("multiplyControls").style.display = "flex";
+            } else if (operationType === "add") {
+                document.getElementById("addControls").style.display = "flex";
+            }
+        }
+
+        function swapRows() {
+            const row1 = parseInt(document.getElementById("swapRow1").value, 10) - 1;
+            const row2 = parseInt(document.getElementById("swapRow2").value, 10) - 1;
+            
+            if (isNaN(row1) || isNaN(row2)) {
+                alert("请输入两个有效的行号！");
                 return;
             }
+            
+            if (row1 >= 0 && row1 < 3 && row2 >= 0 && row2 < 3) {
+                // Create a copy of the current matrix
+                const newMatrix = currentMatrix.map(row => row.map(cell => ({ ...cell })));
+                
+                // Perform the swap
+                [newMatrix[row1], newMatrix[row2]] = [newMatrix[row2], newMatrix[row1]];
+                
+                // Update state
+                iterationCount++;
+                operationHistory.push({
+                    operation: `交换行 ${row1 + 1} 和行 ${row2 + 1}`,
+                    matrix: newMatrix
+                });
+                currentMatrix = newMatrix;
+                
+                // Update display
+                displayCurrentMatrix();
+                checkREF();
+            } else {
+                alert("请输入有效的行号(1-3)！");
+            }
+        }
 
-            let reducedMatrix = matrix.map(row => [...row]); // 复制矩阵
+        function multiplyRow() {
+            const row = parseInt(document.getElementById("multiplyRowNum").value, 10) - 1;
+            const factor = parseFraction(document.getElementById("multiplyFactor").value);
+            
+            if (isNaN(row) || isNaN(factor.numerator)) {
+                alert("请输入有效的行号和倍数！");
+                return;
+            }
+            
+            if (row >= 0 && row < 3 && factor.numerator !== 0) {
+                // Create a copy of the current matrix
+                const newMatrix = currentMatrix.map(row => row.map(cell => ({ ...cell })));
+                
+                // Perform the multiplication
+                for (let j = 0; j < 4; j++) {
+                    newMatrix[row][j] = multiplyFractions(newMatrix[row][j], factor);
+                }
+                
+                // Update state
+                iterationCount++;
+                operationHistory.push({
+                    operation: `行 ${row + 1} 乘以 ${toFraction(factor)}`,
+                    matrix: newMatrix
+                });
+                currentMatrix = newMatrix;
+                
+                // Update display
+                displayCurrentMatrix();
+                checkREF();
+            } else {
+                alert("请输入有效的行号(1-3)和非零倍数！");
+            }
+        }
 
-            for (let i = 0; i < reducedMatrix.length; i++) {
-                let maxRow = i;
-                for (let k = i + 1; k < reducedMatrix.length; k++) {
-                    if (Math.abs(reducedMatrix[k][i]) > Math.abs(reducedMatrix[maxRow][i])) {
-                        maxRow = k;
+        function addRows() {
+            const targetRow = parseInt(document.getElementById("addRowTarget").value, 10) - 1;
+            const sourceRow = parseInt(document.getElementById("addRowSource").value, 10) - 1;
+            const factor = parseFraction(document.getElementById("addFactor").value);
+            
+            if (isNaN(targetRow) || isNaN(sourceRow) || isNaN(factor.numerator)) {
+                alert("请输入有效的行号和倍数！");
+                return;
+            }
+            
+            if (targetRow >= 0 && targetRow < 3 && sourceRow >= 0 && sourceRow < 3) {
+                // Create a copy of the current matrix
+                const newMatrix = currentMatrix.map(row => row.map(cell => ({ ...cell })));
+                
+                // Perform the row addition
+                for (let j = 0; j < 4; j++) {
+                    const product = multiplyFractions(newMatrix[sourceRow][j], factor);
+                    newMatrix[targetRow][j] = addFractions(newMatrix[targetRow][j], product);
+                }
+                
+                // Update state
+                iterationCount++;
+                operationHistory.push({
+                    operation: `行 ${targetRow + 1} += 行 ${sourceRow + 1} × ${toFraction(factor)}`,
+                    matrix: newMatrix
+                });
+                currentMatrix = newMatrix;
+                
+                // Update display
+                displayCurrentMatrix();
+                checkREF();
+            } else {
+                alert("请输入有效的行号(1-3)！");
+            }
+        }
+
+        function checkREF() {
+            // 检查矩阵是否为行阶梯形(REF)
+            let isREF = true;
+            let lastLeadingCol = -1;
+            
+            for (let i = 0; i < 3; i++) {
+                let leadingCol = -1;
+                // 找到当前行的第一个非零元素
+                for (let j = 0; j < 4; j++) {
+                    if (currentMatrix[i][j].numerator !== 0) {
+                        leadingCol = j;
+                        break;
                     }
                 }
-                if (maxRow !== i) {
-                    [reducedMatrix[i], reducedMatrix[maxRow]] = [reducedMatrix[maxRow], reducedMatrix[i]];
-                }
-
-                if (reducedMatrix[i][i] === 0) {
+                
+                if (leadingCol === -1) {
+                    // 全零行，检查是否在底部
+                    for (let k = i + 1; k < 3; k++) {
+                        for (let j = 0; j < 4; j++) {
+                            if (currentMatrix[k][j].numerator !== 0) {
+                                isREF = false;
+                                break;
+                            }
+                        }
+                        if (!isREF) break;
+                    }
+                    if (!isREF) break;
                     continue;
                 }
-
-                for (let j = i + 1; j < reducedMatrix.length; j++) {
-                    let factor = reducedMatrix[j][i] / reducedMatrix[i][i];
-                    for (let k = 0; k < reducedMatrix[j].length; k++) {
-                        reducedMatrix[j][k] -= factor * reducedMatrix[i][k];
+                
+                // 检查主元位置是否在上一行主元的右侧
+                if (leadingCol <= lastLeadingCol) {
+                    isREF = false;
+                    break;
+                }
+                lastLeadingCol = leadingCol;
+                
+                // 检查主元下方是否全为零
+                for (let k = i + 1; k < 3; k++) {
+                    if (currentMatrix[k][leadingCol].numerator !== 0) {
+                        isREF = false;
+                        break;
                     }
                 }
+                if (!isREF) break;
             }
-
-            let rank = 0;
-            for (let i = 0; i < reducedMatrix.length; i++) {
-                if (reducedMatrix[i].some(x => x !== 0)) {
-                    rank++;
+            
+            if (isREF) {
+                document.getElementById('statusDisplay').className = 'status success';
+                document.getElementById('statusDisplay').textContent = `当前矩阵已是行阶梯形(REF) (迭代 ${iterationCount})，请输入矩阵的秩`;
+                document.getElementById('rankInput').style.display = 'block';
+                
+                // 计算实际的秩
+                currentRank = 0;
+                for (let i = 0; i < 3; i++) {
+                    let nonZeroRow = false;
+                    for (let j = 0; j < 4; j++) {
+                        if (currentMatrix[i][j].numerator !== 0) {
+                            nonZeroRow = true;
+                            break;
+                        }
+                    }
+                    if (nonZeroRow) currentRank++;
                 }
+            } else {
+                document.getElementById('statusDisplay').className = 'status warning';
+                document.getElementById('statusDisplay').textContent = `当前矩阵还不是行阶梯形(REF) (迭代 ${iterationCount})，请继续变换`;
+                document.getElementById('rankInput').style.display = 'none';
             }
+        }
 
-            document.getElementById('rankDisplay').innerText = `矩阵的秩是 ${rank}`;
-            displayMatrix(reducedMatrix, 'reducedMatrixDisplay');
-            document.getElementById('statusDisplay').style.display = 'none';
+        function checkRank() {
+            const userRank = parseInt(document.getElementById('userRankInput').value, 10);
+            const resultDiv = document.getElementById('rankResult');
+            
+            if (isNaN(userRank)) {
+                resultDiv.innerHTML = '<span style="color:red;">请输入有效的秩！</span>';
+                return;
+            }
+            
+            if (userRank === currentRank) {
+                resultDiv.innerHTML = `<span style="color:green;">正确！矩阵的秩是 ${currentRank}。</span>`;
+            } else {
+                resultDiv.innerHTML = `<span style="color:red;">不正确。正确的秩是 ${currentRank}。</span>`;
+            }
         }
     </script>
 </body>
