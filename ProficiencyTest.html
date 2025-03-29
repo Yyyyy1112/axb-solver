@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>团队协作能力测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .question {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .question-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .question-description {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .submit-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+        }
+        .submit-btn:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #e8f5e9;
+            border-radius: 4px;
+            display: none;
+        }
+        .result-title {
+            font-weight: bold;
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+        .contribution-score {
+            font-size: 1.2em;
+            text-align: center;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .contribution-score .score {
+            color: #2e7d32;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>团队协作能力测试</h1>
+        <p>请根据自己的行为表现程度选择答案（A始终；B经常；C有时；D很少；E从不）。</p>
+
+        <div class="question">
+            <div class="question-title">B1. 我提供事实和表达自己的观点、意见、感受和信息以帮助小组讨论。</div>
+            <div class="question-description">这表明你是否积极分享自己的想法，为团队讨论提供有价值的信息。</div>
+            <select id="q1">
+                <option value="5">A 始终</option>
+                <option value="4">B 经常</option>
+                <option value="3">C 有时</option>
+                <option value="2">D 很少</option>
+                <option value="1">E 从不</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <div class="question-title">B2. 我从其他小组成员那里征求事实、信息、观点和感受以帮助小组讨论。</div>
+            <div class="question-description">这表明你是否主动倾听他人的意见，鼓励团队成员参与讨论。</div>
+            <select id="q2">
+                <option value="5">A 始终</option>
+                <option value="4">B 经常</option>
+                <option value="3">C 有时</option>
+                <option value="2">D 很少</option>
+                <option value="1">E 从不</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <div class="question-title">B3. 我提出小组后面的工作计划，并提醒大家注意需要完成的任务，以此把握小组的方向。</div>
+            <div class="question-description">这表明你是否能够主动规划任务，确保团队目标的实现。</div>
+            <select id="q3">
+                <option value="5">A 始终</option>
+                <option value="4">B 经常</option>
+                <option value="3">C 有时</option>
+                <option value="2">D 很少</option>
+                <option value="1">E 从不</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <div class="question-title">B4. 我集中小组成员所提出的观点和建议，并总结、复述小组所讨论的主要论点。</div>
+            <div class="question-description">这表明你是否能够有效整合团队意见，推动讨论的进展。</div>
+            <select id="q4">
+                <option value="5">A 始终</option>
+                <option value="4">B 经常</option>
+                <option value="3">C 有时</option>
+                <option value="2">D 很少</option>
+                <option value="1">E 从不</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <div class="question-title">D5. 我带给小组活力，鼓励小组成员努力工作以完成我们的目标。</div>
+            <div class="question-description">这表明你是否能够激励团队成员，保持团队的积极性。</div>
+            <select id="q5">
+                <option value="5">A 始终</option>
+                <option value="4">B 经常</option>
+                <option value="3">C 有时</option>
+                <option value="2">D 很少</option>
+                <option value="1">E 从不</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <div class="question-title">B6. 我要求他人对小组的讨论内容进行总结，并确保他们理解小组的决策，并了解小组正在讨论的材料。</div>
+            <div class="question-description">这表明你是否能够确保团队成员对讨论内容有清晰的理解。</div>
+            <select id="q6">
+                <option value="5">A 始终</option>
+                <option value="4">B 经常</option>
+                <option value="3">C 有时</option>
+                <option value="2">D 很少</option>
+                <option value="1">E 从不</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <div class="question-title">C7. 我热情鼓励所有小组成员参与，愿意听取他们的观点，让他们知道我珍视他们对群体的贡献。</div>
+            <div class="question-description">这表明你是否能够包容团队成员的意见，营造开放的讨论氛围。</div>
+            <select id="q7">
+                <option value="5">A 始终</option>
+                <option value="4">B 经常</option>
+                <option value="3">C 有时</option>
+                <option value="2">D 很少</option>
+                <option value="1">E 从不</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <div class="question-title">B8. 我利用良好的沟通技巧帮助小组成员交流，以保证每个小组成员明白他人的发言。</div>
+            <div class="question-description">这表明你是否能够有效促进团队成员之间的沟通。</div>
+            <select id="q8">
+                <option value="5">A 始终</option>
+                <option value="4">B 经常</option>
+                <option value="3">C 有时</option>
+                <option value="2">D 很少</option>
+                <option value="1">E 从不</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <div class="question-title">B9. 我会讲笑话，并会建议以有趣的方式工作，借以减轻小组中的紧张感，增加大家一同工作的乐趣。</div>
+            <div class="question-description">这表明你是否能够通过幽默和轻松的方式缓解团队压力。</div>
+            <select id="q9">
+                <option value="5">A 始终</option>
+                <option value="4">B 经常</option>
+                <option value="3">C 有时</option>
+                <option value="2">D 很少</option>
+                <option value="1">E 从不</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <div class="question-title">C10. 我观察小组的工作方式，利用我的观察去帮助大家讨论小组如何更好地工作。</div>
+            <div class="question-description">这表明你是否能够通过观察和反馈帮助团队改进。</div>
+            <select id="q10">
+                <option value="5">A 始终</option>
+                <option value="4">B 经常</option>
+                <option value="3">C 有时</option>
+                <option value="2">D 很少</option>
+                <option value="1">E 从不</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <div class="question-title">C11. 我促成有分歧的小组成员进行公开讨论，以协调思想，增进小组凝聚力。当成员们似乎不能直接解决冲突时，我会进行调停。</div>
+            <div class="question-description">这表明你是否能够有效解决团队冲突，维护团队和谐。</div>
+            <select id="q11">
+                <option value="5">A 始终</option>
+                <option value="4">B 经常</option>
+                <option value="3">C 有时</option>
+                <option value="2">D 很少</option>
+                <option value="1">E 从不</option>
+            </select>
+        </div>
+
+        <div class="question">
+            <div class="question-title">A12. 我向其他成员表达支持、接受和喜爱，当其他成员在小组中表现出建设性行为时，我给予适当的赞扬。</div>
+            <div class="question-description">这表明你是否能够通过积极反馈增强团队成员的信心。</div>
+            <select id="q12">
+                <option value="5">A 始终</option>
+                <option value="4">B 经常</option>
+                <option value="3">C 有时</option>
+                <option value="2">D 很少</option>
+                <option value="1">E 从不</option>
+            </select>
+        </div>
+
+        <button class="submit-btn" onclick="calculateScore()">提交并查看结果</button>
+
+        <div class="result" id="result">
+            <div class="result-title">测试结果</div>
+            <div id="scoreDetails"></div>
+            <div class="contribution-score">团队贡献度分数: <span id="contributionScore" class="score">0</span></div>
+            <div id="conclusion"></div>
+        </div>
+    </div>
+
+    <script>
+        function calculateScore() {
+            // 获取每项的得分
+            const scores = [
+                parseInt(document.getElementById('q1').value),
+                parseInt(document.getElementById('q2').value),
+                parseInt(document.getElementById('q3').value),
+                parseInt(document.getElementById('q4').value),
+                parseInt(document.getElementById('q5').value),
+                parseInt(document.getElementById('q6').value),
+                parseInt(document.getElementById('q7').value),
+                parseInt(document.getElementById('q8').value),
+                parseInt(document.getElementById('q9').value),
+                parseInt(document.getElementById('q10').value),
+                parseInt(document.getElementById('q11').value),
+                parseInt(document.getElementById('q12').value)
+            ];
+
+            // 计算两组得分
+            const taskScore = scores.slice(0, 6).reduce((a, b) => a + b, 0);
+            const relationshipScore = scores.slice(6, 12).reduce((a, b) => a + b, 0);
+
+            // 显示得分详情
+            document.getElementById('scoreDetails').innerHTML = 
+                `任务导向得分: ${taskScore} (满分 30)<br>关系导向得分: ${relationshipScore} (满分 30)`;
+
+            // 贡献度公式：将任务得分和关系得分的总和均匀映射到0-100之间
+            const totalScore = taskScore + relationshipScore;
+            const contributionScore = Math.round(totalScore / 60 * 100);
+
+            // 显示贡献度分数
+            document.getElementById('contributionScore').textContent = contributionScore;
+
+            // 根据得分显示结论
+            let conclusion = '';
+            if (taskScore <= 6 && relationshipScore <= 6) {
+                conclusion = '你只为完成工作付出了最小的努力，总体上与其他小组成员十分疏远，在小组中不活跃，对其他人几乎没有任何影响。';
+            } else if (taskScore <= 6 && relationshipScore >= 30) {
+                conclusion = '你十分强调与小组保持良好的关系，为其他成员着想，帮助创造舒适、友好的工作气氛，但很少关注如何完成任务。';
+            } else if (taskScore >= 30 && relationshipScore <= 6) {
+                conclusion = '你着重于完成任务，却忽略了维护关系。';
+            } else if (taskScore >= 18 && relationshipScore >= 18) {
+                conclusion = '你努力协调团队的任务与维护要求，终于达到了平衡。你应继续努力，创造性地结合任务与维护行为，以促成最优生产力。';
+            } else if (taskScore >= 30 && relationshipScore >= 30) {
+                conclusion = '你是一位优秀的团队合作者，并有能力领导一个小组。';
+            } else {
+                conclusion = '你有一定的团队协作能力，但仍有改进空间。请参考上述建议，进一步提升你的团队贡献度。';
+            }
+
+            document.getElementById('conclusion').textContent = conclusion;
+
+            // 显示结果
+            document.getElementById('result').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
