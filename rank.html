@@ -302,7 +302,7 @@
                         // 主元右侧的随机元素
                         row.push({ numerator: Math.floor(Math.random() * 5), denominator: 1 });
                     } else if (i >= targetRank) {
-                        // 秩之外的全零行
+                        // 秩之外的行初始化为全零行
                         row.push({ numerator: 0, denominator: 1 });
                     } else {
                         // 其他位置的随机元素
@@ -312,7 +312,7 @@
                 originalMatrix.push(row);
             }
             
-            // 对矩阵进行随机行变换，使其不是明显的阶梯形
+            // 对矩阵进行随机行变换，确保没有全零行
             for (let k = 0; k < 5; k++) {
                 const operation = Math.floor(Math.random() * 3);
                 
@@ -322,14 +322,14 @@
                     const row2 = Math.floor(Math.random() * 3);
                     [originalMatrix[row1], originalMatrix[row2]] = [originalMatrix[row2], originalMatrix[row1]];
                 } else if (operation === 1) {
-                    // 倍乘某一行
+                    // 倍乘某一行（避免乘以0）
                     const row = Math.floor(Math.random() * 3);
                     const factor = { numerator: Math.floor(Math.random() * 3) + 1, denominator: 1 };
                     for (let j = 0; j < 4; j++) {
                         originalMatrix[row][j] = multiplyFractions(originalMatrix[row][j], factor);
                     }
                 } else {
-                    // 行加减
+                    // 行加减（确保不会生成全零行）
                     const targetRow = Math.floor(Math.random() * 3);
                     const sourceRow = Math.floor(Math.random() * 3);
                     if (targetRow !== sourceRow) {
@@ -337,6 +337,80 @@
                         for (let j = 0; j < 4; j++) {
                             const product = multiplyFractions(originalMatrix[sourceRow][j], factor);
                             originalMatrix[targetRow][j] = addFractions(originalMatrix[targetRow][j], product);
+                        }
+                        // 检查目标行是否全零，如果是则重新操作
+                        let isAllZero = true;
+                        for (let j = 0; j < 4; j++) {
+                            if (originalMatrix[targetRow][j].numerator !== 0) {
+                                isAllZero = false;
+                                break;
+                            }
+                        }
+                        if (isAllZero) {
+                            // 撤销操作
+                            for (let j = 0; j < 4; j++) {
+                                const product = multiplyFractions(originalMatrix[sourceRow][j], factor);
+                                originalMatrix[targetRow][j] = addFractions(originalMatrix[targetRow][j], { numerator: -product.numerator, denominator: product.denominator });
+                            }
+                            k--; // 重试
+                        }
+                    }
+                }
+            }
+            
+            // 最终检查并确保没有全零行（使用两行之间的线性组合）
+            for (let i = 0; i < 3; i++) {
+                let isAllZero = true;
+                for (let j = 0; j < 4; j++) {
+                    if (originalMatrix[i][j].numerator !== 0) {
+                        isAllZero = false;
+                        break;
+                    }
+                }
+                if (isAllZero) {
+                    // 随机选择两行（非全零行）进行线性组合
+                    let sourceRows = [];
+                    for (let k = 0; k < 3; k++) {
+                        if (k !== i) {
+                            let hasNonZero = false;
+                            for (let j = 0; j < 4; j++) {
+                                if (originalMatrix[k][j].numerator !== 0) {
+                                    hasNonZero = true;
+                                    break;
+                                }
+                            }
+                            if (hasNonZero) sourceRows.push(k);
+                        }
+                    }
+                    
+                    if (sourceRows.length >= 2) {
+                        // 随机选择两行
+                        const rowA = sourceRows[Math.floor(Math.random() * sourceRows.length)];
+                        let rowB;
+                        do {
+                            rowB = sourceRows[Math.floor(Math.random() * sourceRows.length)];
+                        } while (rowB === rowA); // 确保选择不同的行
+                        
+                        // 生成随机系数（避免全零组合）
+                        const k1 = { numerator: Math.floor(Math.random() * 2) + 1, denominator: 1 }; // 1或2
+                        const k2 = { numerator: Math.floor(Math.random() * 2) + 1, denominator: 1 }; // 1或2
+                        
+                        // 将线性组合加到全零行上
+                        for (let j = 0; j < 4; j++) {
+                            const term1 = multiplyFractions(originalMatrix[rowA][j], k1);
+                            const term2 = multiplyFractions(originalMatrix[rowB][j], k2);
+                            originalMatrix[i][j] = addFractions(term1, term2);
+                        }
+                    } else if (sourceRows.length === 1) {
+                        // 如果只有一行可选，直接倍乘后加到全零行
+                        const k = { numerator: Math.floor(Math.random() * 2) + 1, denominator: 1 };
+                        for (let j = 0; j < 4; j++) {
+                            originalMatrix[i][j] = multiplyFractions(originalMatrix[sourceRows[0]][j], k);
+                        }
+                    } else {
+                        // 极端情况：所有行都是全零行（理论上不会发生，因为秩至少为1）
+                        for (let j = 0; j < 4; j++) {
+                            originalMatrix[i][j] = { numerator: 1, denominator: 1 }; // 强制设置为非零
                         }
                     }
                 }
